@@ -6,12 +6,14 @@
 What is this project?
 
 - A simple web chat UI built with React + Vite for the GDG Batna Chatbot challenge.
+- A small Node (Express) API that calls Gemini and stores chat logs in PostgreSQL.
 
-How to run locally
+## How to run locally
 
 Prerequisites:
 
 - Node.js (recommended v18+) and `npm` installed.
+- A PostgreSQL database (local or hosted).
 
 Steps:
 
@@ -21,13 +23,29 @@ Steps:
 npm install
 ```
 
-2. Start the development server:
+2. Configure env vars (create a local `.env` file):
+
+Use [.env.example](.env.example) as a template.
+
+Required:
+
+- `GEMINI_API_KEY` (server-side)
+- `DATABASE_URL` (PostgreSQL connection string)
+
+Optional:
+
+- `PORT` (API server port, default `8787`)
+- `CORS_ORIGIN` (default `http://localhost:8080`)
+
+3. Start the backend + frontend together:
 
 ```bash
-npm run dev
+npm run dev:all
 ```
 
-3. Open the app in your browser at the URL shown by the dev server (commonly http://localhost:5173).
+4. Open the app in your browser:
+
+- http://localhost:8080
 
 Build and preview (optional):
 
@@ -36,18 +54,28 @@ npm run build
 npm run preview
 ```
 
-That's all — the project will run locally using the commands above.
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+When you send a message, the API will create a `chat_logs` table (if needed) and insert each chat there.
 
-**Use GitHub Codespaces**
+## Bot core logic (Gemini)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The UI does **not** call Gemini directly. It calls a local Node API endpoint:
+
+- `POST /api/chat`
+
+The backend implementation is in `server/index.js`.
+
+### Important security note
+
+Do **not** put your Gemini API key in a `VITE_...` env var (those are exposed to the browser). Keep `GEMINI_API_KEY` server-side.
+
+### Run backend + frontend together
+
+- `npm run dev:all`
+
+This starts:
+
+- the API server on `http://localhost:8787`
+- Vite on `http://localhost:8080` (with a dev proxy from `/api/*` -> `http://localhost:8787`)
 
 ## What technologies are used for this project?
 
@@ -58,4 +86,6 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Express
+- PostgreSQL
 

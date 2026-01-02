@@ -3,7 +3,7 @@ export type Message = {
   content: string;
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const CHAT_URL = "/api/chat";
 
 export async function streamChat({
   messages,
@@ -21,14 +21,19 @@ export async function streamChat({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: JSON.stringify({ messages }),
     });
 
     if (!resp.ok) {
-      const errorData = await resp.json().catch(() => ({}));
-      const errorMessage = errorData.error || `Request failed with status ${resp.status}`;
+      const rawText = await resp.text().catch(() => "");
+      let errorMessage = `Request failed with status ${resp.status}`;
+      try {
+        const errorData = JSON.parse(rawText) as { error?: string; message?: string };
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        if (rawText.trim()) errorMessage = rawText;
+      }
       onError(errorMessage);
       return;
     }
